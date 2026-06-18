@@ -209,19 +209,13 @@ OFCondition DSRDocumentTreeNode::write(DcmItem &dataset,
 OFCondition DSRDocumentTreeNode::readXML(const DSRXMLDocument &doc,
                                          DSRXMLCursor cursor,
                                          const E_DocumentType documentType,
-                                         const size_t flags)
-{
-    return readXML(doc, cursor, documentType, flags, 0);
-}
-
-OFCondition DSRDocumentTreeNode::readXML(const DSRXMLDocument &doc,
-                                         DSRXMLCursor cursor,
-                                         const E_DocumentType documentType,
                                          const size_t flags,
                                          const size_t depth)
 {
+    /* check whether maximum nesting level is exceeded */
     if (depth > DCMSR_MAX_XML_NESTING_LEVEL)
     {
+        DCMSR_WARN("Maximum nesting level (" << DCMSR_MAX_XML_NESTING_LEVEL << ") of XML elements exceeded");
         return EC_NestingDepthLimitExceeded;
     }
 
@@ -314,7 +308,7 @@ OFCondition DSRDocumentTreeNode::readXML(const DSRXMLDocument &doc,
                             DCMSR_WARN("Content item has invalid/incomplete template identification");
                     }
                     /* proceed with reading child nodes */
-                    result = node->readXML(doc, cursor, documentType, flags, depth + 1);
+                    result = node->readXML(doc, cursor, documentType, flags, depth + 1 /* increase the nesting level by 1 */);
                     /* print node error message (if any) */
                     doc.printGeneralNodeError(cursor, result);
                 } else {
