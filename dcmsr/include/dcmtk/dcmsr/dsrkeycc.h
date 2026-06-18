@@ -87,6 +87,14 @@ class DCMTK_DCMSR_EXPORT DSRKeyObjectSelectionDocumentConstraintChecker
                                             const E_RelationshipType relationshipType,
                                             const E_ValueType targetValueType,
                                             const OFBool byReference = OFFalse) const;
+
+    /** check whether the specified root concept name is allowed/supported for this IOD
+     ** @param  conceptName  coded entry specifying the concept name of the root content
+     *                       item to be checked
+     ** @return status, EC_Normal if the root concept name is valid and supported,
+     *          an error code otherwise
+     */
+    virtual OFCondition checkRootConceptName(const DSRCodedEntryValue &conceptName) const;
 };
 
 
