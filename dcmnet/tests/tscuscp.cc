@@ -776,7 +776,7 @@ struct TestSCPWithMPPSSupport : TestSCP
 
         // Send back response
         T_DIMSE_Message response;
-        memset((char*)&response, 0, sizeof(response));
+        memset(OFreinterpret_cast(char*, &response), 0, sizeof(response));
         T_DIMSE_N_CreateRSP& createResponse         = response.msg.NCreateRSP;
         response.CommandField                       = DIMSE_N_CREATE_RSP;
         createResponse.MessageIDBeingRespondedTo    = messageID;
@@ -874,7 +874,7 @@ struct TestSCPWithMPPSSupport : TestSCP
 
         // Send back response
         T_DIMSE_Message response;
-        memset((char*)&response, 0, sizeof(response));
+        memset(OFreinterpret_cast(char*, &response), 0, sizeof(response));
         T_DIMSE_N_SetRSP& setResponse           = response.msg.NSetRSP;
         response.CommandField                   = DIMSE_N_SET_RSP;
         setResponse.MessageIDBeingRespondedTo   = messageID;

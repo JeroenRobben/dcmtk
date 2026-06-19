@@ -389,8 +389,8 @@ T_ASC_PresentationContextID DcmSCU::findPresentationContextID(const OFString& ab
      * matching both abstract and transfer syntax
      */
     l  = &m_assoc->params->DULparams.acceptedPresentationContext;
-    pc = (DUL_PRESENTATIONCONTEXT*)LST_Head(l);
-    (void)LST_Position(l, (LST_NODE*)pc);
+    pc = OFstatic_cast(DUL_PRESENTATIONCONTEXT*, LST_Head(l));
+    (void)LST_Position(l, OFstatic_cast(LST_NODE*, pc));
     while (pc && !found)
     {
         found = (strcmp(pc->abstractSyntax, abstractSyntax.c_str()) == 0);
@@ -400,7 +400,7 @@ T_ASC_PresentationContextID DcmSCU::findPresentationContextID(const OFString& ab
         if (found)
             found &= pc->acceptedSCRole == ascRole2dulRole(requestorRole);
         if (!found)
-            pc = (DUL_PRESENTATIONCONTEXT*)LST_Next(l);
+            pc = OFstatic_cast(DUL_PRESENTATIONCONTEXT*, LST_Next(l));
     }
     if (found)
         return pc->presentationContextID;
@@ -427,8 +427,8 @@ T_ASC_PresentationContextID DcmSCU::findAnyPresentationContextID(const OFString&
      * matching both abstract and transfer syntax
      */
     l  = &m_assoc->params->DULparams.acceptedPresentationContext;
-    pc = (DUL_PRESENTATIONCONTEXT*)LST_Head(l);
-    (void)LST_Position(l, (LST_NODE*)pc);
+    pc = OFstatic_cast(DUL_PRESENTATIONCONTEXT*, LST_Head(l));
+    (void)LST_Position(l, OFstatic_cast(LST_NODE*, pc));
     while (pc && !found)
     {
         found = (strcmp(pc->abstractSyntax, abstractSyntax.c_str()) == 0);
@@ -436,36 +436,36 @@ T_ASC_PresentationContextID DcmSCU::findAnyPresentationContextID(const OFString&
         if (!transferSyntax.empty()) // ignore transfer syntax if not specified
             found &= (strcmp(pc->acceptedTransferSyntax, transferSyntax.c_str()) == 0);
         if (!found)
-            pc = (DUL_PRESENTATIONCONTEXT*)LST_Next(l);
+            pc = OFstatic_cast(DUL_PRESENTATIONCONTEXT*, LST_Next(l));
     }
     if (found)
         return pc->presentationContextID;
 
     /* now we look for an explicit VR uncompressed PC. */
     l  = &m_assoc->params->DULparams.acceptedPresentationContext;
-    pc = (DUL_PRESENTATIONCONTEXT*)LST_Head(l);
-    (void)LST_Position(l, (LST_NODE*)pc);
+    pc = OFstatic_cast(DUL_PRESENTATIONCONTEXT*, LST_Head(l));
+    (void)LST_Position(l, OFstatic_cast(LST_NODE*, pc));
     while (pc && !found)
     {
         found = (strcmp(pc->abstractSyntax, abstractSyntax.c_str()) == 0) && (pc->result == ASC_P_ACCEPTANCE)
             && ((strcmp(pc->acceptedTransferSyntax, UID_LittleEndianExplicitTransferSyntax) == 0)
                 || (strcmp(pc->acceptedTransferSyntax, UID_BigEndianExplicitTransferSyntax) == 0));
         if (!found)
-            pc = (DUL_PRESENTATIONCONTEXT*)LST_Next(l);
+            pc = OFstatic_cast(DUL_PRESENTATIONCONTEXT*, LST_Next(l));
     }
     if (found)
         return pc->presentationContextID;
 
     /* now we look for an implicit VR uncompressed PC. */
     l  = &m_assoc->params->DULparams.acceptedPresentationContext;
-    pc = (DUL_PRESENTATIONCONTEXT*)LST_Head(l);
-    (void)LST_Position(l, (LST_NODE*)pc);
+    pc = OFstatic_cast(DUL_PRESENTATIONCONTEXT*, LST_Head(l));
+    (void)LST_Position(l, OFstatic_cast(LST_NODE*, pc));
     while (pc && !found)
     {
         found = (strcmp(pc->abstractSyntax, abstractSyntax.c_str()) == 0) && (pc->result == ASC_P_ACCEPTANCE)
             && (strcmp(pc->acceptedTransferSyntax, UID_LittleEndianImplicitTransferSyntax) == 0);
         if (!found)
-            pc = (DUL_PRESENTATIONCONTEXT*)LST_Next(l);
+            pc = OFstatic_cast(DUL_PRESENTATIONCONTEXT*, LST_Next(l));
     }
     if (found)
         return pc->presentationContextID;
@@ -492,8 +492,8 @@ void DcmSCU::findPresentationContext(const T_ASC_PresentationContextID presID,
      * both abstract and transfer syntax
      */
     l  = &m_assoc->params->DULparams.acceptedPresentationContext;
-    pc = (DUL_PRESENTATIONCONTEXT*)LST_Head(l);
-    (void)LST_Position(l, (LST_NODE*)pc);
+    pc = OFstatic_cast(DUL_PRESENTATIONCONTEXT*, LST_Head(l));
+    (void)LST_Position(l, OFstatic_cast(LST_NODE*, pc));
     while (pc)
     {
         if (presID == pc->presentationContextID)
@@ -506,7 +506,7 @@ void DcmSCU::findPresentationContext(const T_ASC_PresentationContextID presID,
             }
             break;
         }
-        pc = (DUL_PRESENTATIONCONTEXT*)LST_Next(l);
+        pc = OFstatic_cast(DUL_PRESENTATIONCONTEXT*, LST_Next(l));
     }
 }
 
@@ -625,7 +625,7 @@ OFCondition DcmSCU::sendECHORequest(const T_ASC_PresentationContextID presID)
     /* Now, assemble DIMSE message */
     T_DIMSE_Message msg;
     // Make sure everything is zeroed (especially options)
-    memset((char*)&msg, 0, sizeof(msg));
+    memset(OFreinterpret_cast(char*, &msg), 0, sizeof(msg));
     T_DIMSE_C_EchoRQ* req = &(msg.msg.CEchoRQ);
     // Set type of message
     msg.CommandField = DIMSE_C_ECHO_RQ;
@@ -657,7 +657,7 @@ OFCondition DcmSCU::sendECHORequest(const T_ASC_PresentationContextID presID)
     /* Receive response */
     T_DIMSE_Message rsp;
     // Make sure everything is zeroed (especially options)
-    memset((char*)&rsp, 0, sizeof(rsp));
+    memset(OFreinterpret_cast(char*, &rsp), 0, sizeof(rsp));
 
     DcmDataset* statusDetail = NULL;
     cond = receiveDIMSECommand(&pcid, &rsp, &statusDetail, NULL /* not interested in the command set */);
@@ -719,7 +719,7 @@ OFCondition DcmSCU::sendSTORERequest(const T_ASC_PresentationContextID presID,
     DcmDataset* statusDetail         = NULL;
     T_DIMSE_Message msg;
     // Make sure everything is zeroed (especially options)
-    memset((char*)&msg, 0, sizeof(msg));
+    memset(OFreinterpret_cast(char*, &msg), 0, sizeof(msg));
     T_DIMSE_C_StoreRQ* req = &(msg.msg.CStoreRQ);
 
     // Set type of message
@@ -864,7 +864,7 @@ OFCondition DcmSCU::sendSTORERequest(const T_ASC_PresentationContextID presID,
     /* Receive response */
     T_DIMSE_Message rsp;
     // Make sure everything is zeroed (especially options)
-    memset((char*)&rsp, 0, sizeof(rsp));
+    memset(OFreinterpret_cast(char*, &rsp), 0, sizeof(rsp));
     cond = receiveDIMSECommand(&pcid, &rsp, &statusDetail, NULL /* not interested in the command set */);
     if (cond.bad())
     {
@@ -926,7 +926,7 @@ OFCondition DcmSCU::sendMOVERequest(const T_ASC_PresentationContextID presID,
     T_ASC_PresentationContextID pcid = presID;
     T_DIMSE_Message msg;
     // make sure everything is zeroed (especially options)
-    memset((char*)&msg, 0, sizeof(msg));
+    memset(OFreinterpret_cast(char*, &msg), 0, sizeof(msg));
     DcmDataset* statusDetail = NULL;
     T_DIMSE_C_MoveRQ* req    = &(msg.msg.CMoveRQ);
     // Set type of message
@@ -970,7 +970,7 @@ OFCondition DcmSCU::sendMOVERequest(const T_ASC_PresentationContextID presID,
     {
         T_DIMSE_Message rsp;
         // Make sure everything is zeroed, especially options
-        memset((char*)&rsp, 0, sizeof(rsp));
+        memset(OFreinterpret_cast(char*, &rsp), 0, sizeof(rsp));
         statusDetail = NULL;
 
         // Receive command set
@@ -1094,7 +1094,7 @@ OFCondition DcmSCU::sendCGETRequest(const T_ASC_PresentationContextID presID,
     T_ASC_PresentationContextID pcid = presID;
     T_DIMSE_Message msg;
     // Make sure everything is zeroed (especially options)
-    memset((char*)&msg, 0, sizeof(msg));
+    memset(OFreinterpret_cast(char*, &msg), 0, sizeof(msg));
     T_DIMSE_C_GetRQ* req = &(msg.msg.CGetRQ);
     // Set type of message
     msg.CommandField = DIMSE_C_GET_RQ;
@@ -1148,7 +1148,7 @@ OFCondition DcmSCU::handleCGETSession(const T_ASC_PresentationContextID /* presI
     {
         T_DIMSE_Message rsp;
         // Make sure everything is zeroed (especially options)
-        memset((char*)&rsp, 0, sizeof(rsp));
+        memset(OFreinterpret_cast(char*, &rsp), 0, sizeof(rsp));
 
         DcmDataset* statusDetail         = NULL;
         T_ASC_PresentationContextID pcid = 0;
@@ -1408,7 +1408,7 @@ DcmSCU::sendSTOREResponse(T_ASC_PresentationContextID presID, Uint16 status, con
     // Send back response
     T_DIMSE_Message response;
     // Make sure everything is zeroed (especially options)
-    memset((char*)&response, 0, sizeof(response));
+    memset(OFreinterpret_cast(char*, &response), 0, sizeof(response));
     T_DIMSE_C_StoreRSP& storeRsp       = response.msg.CStoreRSP;
     response.CommandField              = DIMSE_C_STORE_RSP;
     storeRsp.MessageIDBeingRespondedTo = request.MessageID;
@@ -1506,7 +1506,7 @@ DcmSCU::sendFINDRequest(const T_ASC_PresentationContextID presID, DcmDataset* qu
     T_ASC_PresentationContextID pcid = presID;
     T_DIMSE_Message msg;
     // Make sure everything is zeroed (especially options)
-    memset((char*)&msg, 0, sizeof(msg));
+    memset(OFreinterpret_cast(char*, &msg), 0, sizeof(msg));
 
     DcmDataset* statusDetail = NULL;
     T_DIMSE_C_FindRQ* req    = &(msg.msg.CFindRQ);
@@ -1549,7 +1549,7 @@ DcmSCU::sendFINDRequest(const T_ASC_PresentationContextID presID, DcmDataset* qu
     {
         T_DIMSE_Message rsp;
         // Make sure everything is zeroed (especially options)
-        memset((char*)&rsp, 0, sizeof(rsp));
+        memset(OFreinterpret_cast(char*, &rsp), 0, sizeof(rsp));
 
         statusDetail = NULL;
 
@@ -1667,7 +1667,7 @@ OFCondition DcmSCU::sendCANCELRequest(const T_ASC_PresentationContextID presID,
     T_ASC_PresentationContextID pcid = presID;
     T_DIMSE_Message msg;
     // Make sure everything is zeroed (especially options)
-    memset((char*)&msg, 0, sizeof(msg));
+    memset(OFreinterpret_cast(char*, &msg), 0, sizeof(msg));
     T_DIMSE_C_CancelRQ* req = &(msg.msg.CCancelRQ);
     // Set type of message
     msg.CommandField = DIMSE_C_CANCEL_RQ;
@@ -1743,7 +1743,7 @@ OFCondition DcmSCU::sendACTIONRequest(const T_ASC_PresentationContextID presID,
     T_ASC_PresentationContextID pcid = presID;
     T_DIMSE_Message request;
     // Make sure everything is zeroed (especially options)
-    memset((char*)&request, 0, sizeof(request));
+    memset(OFreinterpret_cast(char*, &request), 0, sizeof(request));
     T_DIMSE_N_ActionRQ& actionReq = request.msg.NActionRQ;
     DcmDataset* statusDetail      = NULL;
 
@@ -1796,7 +1796,7 @@ OFCondition DcmSCU::sendACTIONRequest(const T_ASC_PresentationContextID presID,
 
     // Receive response
     T_DIMSE_Message response;
-    memset((char*)&response, 0, sizeof(response));
+    memset(OFreinterpret_cast(char*, &response), 0, sizeof(response));
     cond = receiveDIMSECommand(&pcid, &response, &statusDetail, NULL /* commandSet */);
     if (cond.bad())
     {
@@ -1896,7 +1896,7 @@ OFCondition DcmSCU::sendEVENTREPORTRequest(const T_ASC_PresentationContextID pre
     T_ASC_PresentationContextID pcid = presID;
     T_DIMSE_Message request;
     // Make sure everything is zeroed (especially options)
-    memset((char*)&request, 0, sizeof(request));
+    memset(OFreinterpret_cast(char*, &request), 0, sizeof(request));
 
     T_DIMSE_N_EventReportRQ& eventReportReq = request.msg.NEventReportRQ;
     DcmDataset* statusDetail                = NULL;
@@ -1941,7 +1941,7 @@ OFCondition DcmSCU::sendEVENTREPORTRequest(const T_ASC_PresentationContextID pre
     // Receive response
     T_DIMSE_Message response;
     // Make sure everything is zeroed (especially options)
-    memset((char*)&response, 0, sizeof(response));
+    memset(OFreinterpret_cast(char*, &response), 0, sizeof(response));
 
     cond = receiveDIMSECommand(&pcid, &response, &statusDetail, NULL /* commandSet */);
     if (cond.bad())
@@ -2026,7 +2026,7 @@ OFCondition DcmSCU::handleEVENTREPORTRequest(DcmDataset*& reqDataset, Uint16& ev
     T_ASC_PresentationContextID presIDdset;
     T_DIMSE_Message request;
     // Make sure everything is zeroed (especially options)
-    memset((char*)&request, 0, sizeof(request));
+    memset(OFreinterpret_cast(char*, &request), 0, sizeof(request));
     T_DIMSE_N_EventReportRQ& eventReportReq = request.msg.NEventReportRQ;
     DcmDataset* dataset                     = NULL;
     DcmDataset* statusDetail                = NULL;
@@ -2112,7 +2112,7 @@ OFCondition DcmSCU::handleEVENTREPORTRequest(DcmDataset*& reqDataset, Uint16& ev
     // Send back response
     T_DIMSE_Message response;
     // Make sure everything is zeroed (especially options)
-    memset((char*)&response, 0, sizeof(response));
+    memset(OFreinterpret_cast(char*, &response), 0, sizeof(response));
 
     T_DIMSE_N_EventReportRSP& eventReportRsp = response.msg.NEventReportRSP;
     response.CommandField                    = DIMSE_N_EVENT_REPORT_RSP;
@@ -2174,7 +2174,7 @@ OFCondition DcmSCU::sendNCREATERequest(const T_ASC_PresentationContextID presID,
 
     T_DIMSE_Message request;
     // Make sure everything is zeroed (especially options)
-    memset((char*)&request, 0, sizeof(request));
+    memset(OFreinterpret_cast(char*, &request), 0, sizeof(request));
     request.CommandField        = DIMSE_N_CREATE_RQ;
     T_DIMSE_N_CreateRQ& rqmsg   = request.msg.NCreateRQ;
     rqmsg.MessageID             = nextMessageID();
@@ -2206,7 +2206,7 @@ OFCondition DcmSCU::sendNCREATERequest(const T_ASC_PresentationContextID presID,
 
     T_DIMSE_Message response;
     // Make sure everything is zeroed (especially options)
-    memset((char*)&response, 0, sizeof(response));
+    memset(OFreinterpret_cast(char*, &response), 0, sizeof(response));
     DcmDataset* statusDetail = OFnullptr;
 
     T_ASC_PresentationContextID pcid = presID;
@@ -2309,7 +2309,7 @@ OFCondition DcmSCU::sendNSETRequest(const T_ASC_PresentationContextID presID,
 
     // Make sure, everything is zeroed (especially options)
     T_DIMSE_Message request;
-    memset((char*)&request, 0, sizeof(request));
+    memset(OFreinterpret_cast(char*, &request), 0, sizeof(request));
     request.CommandField = DIMSE_N_SET_RQ;
     T_DIMSE_N_SetRQ& rqmsg = request.msg.NSetRQ;
     rqmsg.MessageID = nextMessageID();
@@ -2343,7 +2343,7 @@ OFCondition DcmSCU::sendNSETRequest(const T_ASC_PresentationContextID presID,
 
     T_DIMSE_Message response;
     // Make sure everything is zeroed (especially options)
-    memset((char*)&response, 0, sizeof(response));
+    memset(OFreinterpret_cast(char*, &response), 0, sizeof(response));
     DcmDataset* statusDetail = OFnullptr;
 
     T_ASC_PresentationContextID pcid = presID;
@@ -2453,7 +2453,7 @@ OFCondition DcmSCU::sendNGETRequest(const T_ASC_PresentationContextID presID,
     }
 
     T_DIMSE_Message request;
-    memset((char*)&request, 0, sizeof(request));
+    memset(OFreinterpret_cast(char*, &request), 0, sizeof(request));
     request.CommandField                      = DIMSE_N_GET_RQ;
     T_DIMSE_N_GetRQ& rqmsg                    = request.msg.NGetRQ;
     rqmsg.MessageID                           = nextMessageID();
@@ -2504,7 +2504,7 @@ OFCondition DcmSCU::sendNGETRequest(const T_ASC_PresentationContextID presID,
     }
 
     T_DIMSE_Message response;
-    memset((char*)&response, 0, sizeof(response));
+    memset(OFreinterpret_cast(char*, &response), 0, sizeof(response));
     DcmDataset* statusDetail = OFnullptr;
 
     T_ASC_PresentationContextID pcid = presID;
