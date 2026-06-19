@@ -3423,7 +3423,10 @@ void OFStandard::sanitizeFilename(OFString& fname)
     for (size_t i = 0; i < len; ++i)
     {
         c = fname[i];
-        if (c != 0 && (c < 32 || c >= 127)) c = '_'; else c = sanitized_filename_charset[c-32];
+        // Note: an embedded NUL (c == 0) must be treated like any other control
+        // character and replaced. It must not reach the table lookup, which
+        // would index sanitized_filename_charset[0 - 32] (out-of-bounds read).
+        if (c < 32 || c >= 127) c = '_'; else c = sanitized_filename_charset[c-32];
         fname[i] = c;
     }
 }

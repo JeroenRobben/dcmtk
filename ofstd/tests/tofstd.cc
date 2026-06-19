@@ -429,6 +429,52 @@ OFTEST(ofstd_OFStandard_sanitizeAETitle)
     OFCHECK_EQUAL(s, "_");
 }
 
+OFTEST(ofstd_OFStandard_sanitizeFilename)
+{
+    // Alphanumerics and the allow-listed punctuation ('-', '.') are preserved.
+    OFString s = "IMG-001.dcm";
+    OFStandard::sanitizeFilename(s);
+    OFCHECK_EQUAL(s, "IMG-001.dcm");
+
+    // Path separators map to underscores.
+    s = "../etc/passwd";
+    OFStandard::sanitizeFilename(s);
+    OFCHECK_EQUAL(s, ".._etc_passwd");
+
+    // Backslash (Windows path separator) is replaced.
+    s = "..\\secret";
+    OFStandard::sanitizeFilename(s);
+    OFCHECK_EQUAL(s, ".._secret");
+
+    // Regression: an embedded NUL byte must be replaced like any other control
+    // character. Previously the "c != 0" guard let it fall through to
+    // sanitized_filename_charset[0 - 32], an out-of-bounds read 32 bytes before
+    // the table. This is reachable over the network: a C-STORE whose
+    // StudyInstanceUID contains an embedded NUL reaches sanitizeFilename intact
+    // (DcmByteString preserves embedded NULs via length-based extraction).
+    OFString withNul;
+    withNul.append("1.2.3", 5);
+    withNul.append(1, '\0');
+    withNul.append("4", 1);
+    OFStandard::sanitizeFilename(withNul);
+    OFCHECK_EQUAL(withNul, OFString("1.2.3_4"));
+
+    // High-range bytes (>= 0x7F) are replaced.
+    OFString withHigh;
+    withHigh.append("AB", 2);
+    withHigh.append(1, '\xff');
+    OFStandard::sanitizeFilename(withHigh);
+    OFCHECK_EQUAL(withHigh, OFString("AB_"));
+
+    // Empty string and length-1 string are handled without crashing.
+    s = "";
+    OFStandard::sanitizeFilename(s);
+    OFCHECK_EQUAL(s, "");
+    s = "/";
+    OFStandard::sanitizeFilename(s);
+    OFCHECK_EQUAL(s, "_");
+}
+
 OFTEST(ofstd_safeSubtractAddMult)
 {
   // --------------- Subtraction ----------------
