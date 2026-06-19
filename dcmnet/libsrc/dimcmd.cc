@@ -1,6 +1,6 @@
 /*
  *
- *  Copyright (C) 1994-2025, OFFIS e.V.
+ *  Copyright (C) 1994-2026, OFFIS e.V.
  *  All rights reserved.  See COPYRIGHT file for details.
  *
  *  This software and supporting documentation were partly developed by
@@ -206,7 +206,13 @@ getString(DcmDataset *obj, DcmTagKey t, char *s, int maxlen, OFBool *spacePadded
             ec =  elem->getString(aString);
             if (ec.good())
             {
-                strncpy(s, aString, maxlen);
+                /* Use strlcpy (always NUL-terminates) rather than strncpy: when
+                 * the value length equals maxlen, strncpy would copy exactly
+                 * maxlen bytes without a terminating NUL, leaving s[maxlen]
+                 * undefined and letting the strlen()/space-stripping below read
+                 * past the field. Every caller passes a DIC_*_LEN against a
+                 * DIC_*[*_LEN + 1] buffer, so maxlen + 1 is always in bounds. */
+                OFStandard::strlcpy(s, aString, maxlen + 1);
                 if (spacePadded)
                 {
                     /* before we remove leading and tailing spaces we want to know
