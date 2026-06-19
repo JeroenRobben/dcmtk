@@ -227,3 +227,67 @@ OFTEST(dcmnet_parseAssociate_extNeg_malformed_itemLength)
 
     delete[] buf;
 }
+
+
+/* Regression test for the pre-authentication memory leak caused by a duplicate
+ * User Identity Negotiation sub-item (item type 0x58) in an A-ASSOCIATE-RQ.
+ * DICOM permits this sub-item at most once per association, but
+ * parseUserInfo() stored each parsed sub-item in the single userInfo->usrIdent
+ * pointer. A second sub-item silently overwrote (and leaked) the first, since
+ * destroyUserInformationLists() can only free whichever pointer is stored last.
+ * An unauthenticated peer could pack many sub-items into one PDU to exhaust
+ * server memory.
+ *
+ * Payload: two minimal, well-formed 0x58 sub-items. The parser must now reject
+ * the PDU when it sees the second one. The functional assertion below also
+ * confirms the error-path cleanup cleared userInfo->usrIdent (no leak, no
+ * double-free); the leak itself is only directly observable under
+ * tooling like LeakSanitizer.
+ */
+OFTEST(dcmnet_parseAssociate_duplicate_userIdentity)
+{
+    // A minimal User Identity Negotiation RQ sub-item is 10 bytes on the wire:
+    // the 4-byte sub-PDU header plus a 6-byte mandatory body (identity type(1),
+    // positive-response-requested(1), primary-field length(2), secondary-field
+    // length(2)) with both variable fields empty.
+    const unsigned short USER_IDENT_BODY_BYTES    = 6;
+    const unsigned long  USER_IDENT_SUBITEM_BYTES = SUBPDU_HEADER_BYTES + USER_IDENT_BODY_BYTES; // 10
+    const int            numSubItems              = 2;
+
+    const unsigned short userInfoPayload = OFstatic_cast(unsigned short,
+        OFstatic_cast(unsigned long, numSubItems) * USER_IDENT_SUBITEM_BYTES);
+    const unsigned long totalLen = ASSOC_RQ_HEADER_BYTES + SUBPDU_HEADER_BYTES + userInfoPayload;
+    const unsigned long pduPayloadLen = totalLen - PDU_PREAMBLE_BYTES;
+
+    unsigned char *buf = new unsigned char[totalLen];
+    unsigned char *p = write_assoc_rq_header(buf, pduPayloadLen);
+
+    // User Info sub-PDU header.
+    *p++ = DUL_TYPEUSERINFO;
+    *p++ = 0x00;
+    put_u16_be(p, userInfoPayload);
+
+    // Two identical, well-formed User Identity Negotiation sub-items. Each one
+    // parses successfully on its own; it is the duplicate that must be rejected.
+    for (int i = 0; i < numSubItems; ++i) {
+        *p++ = DUL_TYPENEGOTIATIONOFUSERIDENTITY_REQ;  // item type 0x58
+        *p++ = 0x00;                                   // reserved
+        put_u16_be(p, USER_IDENT_BODY_BYTES);          // item length = 6
+        *p++ = 1;                                      // user identity type = 1 (username)
+        *p++ = 0x00;                                   // positive response requested = no
+        put_u16_be(p, 0);                              // primary-field length   = 0
+        put_u16_be(p, 0);                              // secondary-field length = 0
+    }
+
+    OFCHECK_EQUAL(OFstatic_cast(unsigned long, p - buf), totalLen);
+
+    PRV_ASSOCIATEPDU assoc;
+    OFCondition cond = parseAssociate(buf, pduPayloadLen, &assoc);
+
+    // The duplicate sub-item must be rejected.
+    OFCHECK(cond.bad());
+    // Error-path cleanup ran: the first sub-item was freed and the pointer cleared.
+    OFCHECK(assoc.userInfo.usrIdent == NULL);
+
+    delete[] buf;
+}

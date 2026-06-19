@@ -634,6 +634,19 @@ parseUserInfo(DUL_USERINFO * userInfo,
             delete usrIdent;
             return cond;
           }
+          // DICOM permits at most one User Identity Negotiation sub-item per
+          // association. Reject a duplicate instead of silently overwriting
+          // userInfo->usrIdent, which would leak the previously
+          // parsed sub-item: the cleanup in destroyUserInformationLists() can
+          // only free whichever pointer is stored last, so each earlier
+          // allocation would leak permanently. An unauthenticated peer could
+          // otherwise pack many sub-items into a single PDU to exhaust memory.
+          if (userInfo->usrIdent != NULL)
+          {
+            delete usrIdent;
+            return makeDcmnetCondition(DULC_ILLEGALPDU, OF_error,
+              "Multiple User Identity Negotiation sub-items in A-ASSOCIATE PDU");
+          }
           userInfo->usrIdent = usrIdent;
           buf += length;
           if (!OFStandard::safeSubtract(userLength, OFstatic_cast(short unsigned int, length), userLength))
