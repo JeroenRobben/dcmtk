@@ -2338,7 +2338,8 @@ dsrkeycc.o: dsrkeycc.cc ../../config/include/dcmtk/config/osconfig.h \
  ../../dcmdata/include/dcmtk/dcmdata/dcpcache.h \
  ../../dcmdata/include/dcmtk/dcmdata/dcsequen.h \
  ../include/dcmtk/dcmsr/dsrcodvl.h \
- ../../ofstd/include/dcmtk/ofstd/ofexbl.h
+ ../../ofstd/include/dcmtk/ofstd/ofexbl.h \
+ ../include/dcmtk/dcmsr/codes/dcm.h
 dsrmaccc.o: dsrmaccc.cc ../../config/include/dcmtk/config/osconfig.h \
  ../include/dcmtk/dcmsr/dsrmaccc.h ../include/dcmtk/dcmsr/dsriodcc.h \
  ../include/dcmtk/dcmsr/dsrtypes.h ../include/dcmtk/dcmsr/dsdefine.h \
