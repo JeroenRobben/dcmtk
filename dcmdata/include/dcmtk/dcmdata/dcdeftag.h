@@ -4,7 +4,7 @@
 **
 **   User: joergr
 **   Host: thinkpad2
-**   Date: 2026-03-28 10:30:01
+**   Date: 2026-06-21 21:05:05
 **   Prog: /home/joergr/Source/dcmtk-full/public/dcmdata/libsrc/mkdeftag
 **
 **   From: ../data/dicom.dic
@@ -17,12 +17,12 @@
 
 #include "dcmtk/dcmdata/dctagkey.h"
 
-#define DCM_DICT_DEFTAG_BUILD_DATE "2026-03-28 10:30:01"
+#define DCM_DICT_DEFTAG_BUILD_DATE "2026-06-21 21:05:05"
 
 
 /*
 ** Fixed Tags in ascending (gggg,eeee) order.
-** Number of entries: 5275
+** Number of entries: 5276
 ** Tags with a repeating component (repeating tags) are listed later.
 */
 #define DCM_CommandGroupLength                   DcmTagKey(0x0000, 0x0000)
@@ -2948,6 +2948,7 @@
 #define DCM_DocumentClassCodeSequence            DcmTagKey(0x0040, 0xe008)
 #define DCM_RetrieveURI                          DcmTagKey(0x0040, 0xe010)
 #define DCM_RetrieveLocationUID                  DcmTagKey(0x0040, 0xe011)
+#define DCM_DisplayURI                           DcmTagKey(0x0040, 0xe012)
 #define DCM_TypeOfInstances                      DcmTagKey(0x0040, 0xe020)
 #define DCM_DICOMRetrievalSequence               DcmTagKey(0x0040, 0xe021)
 #define DCM_DICOMMediaRetrievalSequence          DcmTagKey(0x0040, 0xe022)
