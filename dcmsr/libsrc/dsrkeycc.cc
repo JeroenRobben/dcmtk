@@ -146,7 +146,7 @@ OFBool DSRKeyObjectSelectionDocumentConstraintChecker::checkContentRelationship(
 
 OFCondition DSRKeyObjectSelectionDocumentConstraintChecker::checkRootConceptName(const DSRCodedEntryValue &conceptName) const
 {
-    /* TODO: replace with CODE_DCM_ManifestWithDescription */
-    return (conceptName.isEqual(CODE_DCM_Manifest, "01") || (conceptName.isEqual(DSRBasicCodedEntry("131560", "DCM", "Manifest with Description"), "01"))) ?
+    /* TODO: need to check for codes from CID 7010 "Key Object Selection Document Title" */
+    return conceptName.isEqual(CODE_DCM_ManifestWithDescription, "01" /*defaultCodingSchemeVersion*/) ?
         SR_EC_UnsupportedRootConceptName : DSRIODConstraintChecker::checkRootConceptName(conceptName);
 }
