@@ -3394,18 +3394,14 @@ readPDU(PRIVATE_ASSOCIATIONKEY ** association, DUL_BLOCKOPTIONS block,
       return NET_EC_AssociatePDUTooLarge;
     }
 
-    // guard against an integer overflow when adding the safety margin below. On platforms where
-    // "unsigned long" is 32 bit (e.g. all 32 bit targets and 64 bit Windows/LLP64) nextPDULength+100
-    // could otherwise wrap around to a tiny value, resulting in an undersized buffer and a
-    // subsequent heap buffer overflow in readPDUBody(). This is a defense-in-depth check; for the
-    // default configuration the size limit above already rejects such oversized PDUs.
-    if ((*association)->nextPDULength > (OFstatic_cast(size_t, -1) - 100))
+    // Defense-in-depth: compute the buffer size via safeAdd() so the +100 margin cannot overflow
+    // size_t (an undersized buffer would cause a heap overflow in readPDUBody()). safeAdd() also
+    // avoids a tautological comparison on LLP64 (e.g. Windows), where size_t is wider than nextPDULength.
+    if (!OFStandard::safeAdd(OFstatic_cast(size_t, (*association)->nextPDULength), OFstatic_cast(size_t, 100), maxLength))
     {
       DCMNET_ERROR("A-ASSOCIATE PDU too large: " << (*association)->nextPDULength << " bytes, refusing." );
       return NET_EC_AssociatePDUTooLarge;
     }
-
-    maxLength = OFstatic_cast(size_t, (*association)->nextPDULength) + 100;
     buffer.buffer = (unsigned char *)malloc(maxLength);
     if (buffer.buffer)
     {
