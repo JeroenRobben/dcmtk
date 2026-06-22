@@ -1393,8 +1393,8 @@ OFCondition DcmQueryRetrieveIndexDatabaseHandle::startFindRequest(
                 char *pc ;
                 char level [50] ;
 
-                strncpy(level, (char*)elem.PValueField,
-                        (elem.ValueLength<50)? (size_t)(elem.ValueLength) : 49) ;
+                /* always NUL-terminates and never overflows "level" */
+                OFStandard::strlcpy(level, (char*)elem.PValueField, sizeof(level)) ;
 
                 /*** Skip this two lines if you want strict comparison
                 **/
@@ -2081,7 +2081,8 @@ OFCondition DcmQueryRetrieveIndexDatabaseHandle::startMoveRequest(
                 char *pc ;
                 char level [50] ;
 
-                strncpy (level, (char *) elem. PValueField, (size_t)((elem. ValueLength < 50) ? elem. ValueLength : 49)) ;
+                /* always NUL-terminates and never overflows "level" */
+                OFStandard::strlcpy (level, (char *) elem. PValueField, sizeof(level)) ;
 
                 /*** Skip this two lines if you want strict comparison
                 **/
