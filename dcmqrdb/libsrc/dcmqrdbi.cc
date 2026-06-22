@@ -2509,6 +2509,17 @@ OFCondition DcmQueryRetrieveIndexDatabaseHandle::deleteOldestImages(StudyDescRec
 
     while ( DeletedSize < RequiredSize ) {
 
+    if (s >= nbimages) {
+        // We have deleted all images recorded for this study but still did not
+        // free RequiredSize bytes. This means the study descriptor's StudySize
+        // is out of sync with the actual index records. Stop here instead of
+        // reading past the end of StudyArray.
+        DCMQRDB_WARN("deleteOldestImages: study descriptor out of sync with index, "
+            << "deleted all " << nbimages << " image(s) of this study but freed only "
+            << DeletedSize << " of " << RequiredSize << " required bytes");
+        break;
+    }
+
     IdxRecord idxRemoveRec ;
     DB_IdxRead (StudyArray[s]. idxCounter, &idxRemoveRec) ;
 #ifdef DEBUG
