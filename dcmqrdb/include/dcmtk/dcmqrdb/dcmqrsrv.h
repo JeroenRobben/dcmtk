@@ -1,6 +1,6 @@
 /*
  *
- *  Copyright (C) 1993-2023, OFFIS e.V.
+ *  Copyright (C) 1993-2026, OFFIS e.V.
  *  All rights reserved.  See COPYRIGHT file for details.
  *
  *  This software and supporting documentation were developed by
@@ -151,6 +151,8 @@ private:
     OFBool correctUIDPadding);
 
   static void refuseAnyStorageContexts(T_ASC_Association *assoc);
+
+  static void refuseAnyQueryRetrieveContexts(T_ASC_Association *assoc);
 
   /// configuration facility
   const DcmQueryRetrieveConfig *config_;

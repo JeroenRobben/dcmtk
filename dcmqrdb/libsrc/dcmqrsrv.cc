@@ -1,6 +1,6 @@
 /*
  *
- *  Copyright (C) 1993-2025, OFFIS e.V.
+ *  Copyright (C) 1993-2026, OFFIS e.V.
  *  All rights reserved.  See COPYRIGHT file for details.
  *
  *  This software and supporting documentation were developed by
@@ -480,6 +480,35 @@ void DcmQueryRetrieveSCP::refuseAnyStorageContexts(T_ASC_Association * assoc)
 }
 
 
+void DcmQueryRetrieveSCP::refuseAnyQueryRetrieveContexts(T_ASC_Association * assoc)
+{
+    // Query/Retrieve (C-FIND/C-MOVE/C-GET) abstract syntaxes for all supported
+    // information models (patient root, study root, patient/study only).  The
+    // Verification SOP Class is intentionally not included here, so a write-only
+    // storage area can still be checked with C-ECHO.
+    static const char *qrSyntaxes[] =
+    {
+        UID_FINDPatientRootQueryRetrieveInformationModel,
+        UID_MOVEPatientRootQueryRetrieveInformationModel,
+        UID_GETPatientRootQueryRetrieveInformationModel,
+        UID_FINDStudyRootQueryRetrieveInformationModel,
+        UID_MOVEStudyRootQueryRetrieveInformationModel,
+        UID_GETStudyRootQueryRetrieveInformationModel,
+        UID_RETIRED_FINDPatientStudyOnlyQueryRetrieveInformationModel,
+        UID_RETIRED_MOVEPatientStudyOnlyQueryRetrieveInformationModel,
+        UID_RETIRED_GETPatientStudyOnlyQueryRetrieveInformationModel
+    };
+
+    for (int i = 0; i < OFstatic_cast(int, DIM_OF(qrSyntaxes)); i++) {
+        T_ASC_PresentationContextID pid;
+        // there might be multiple presentation contexts for the same SOP class
+        while ((pid = ASC_findAcceptedPresentationContextID(assoc, qrSyntaxes[i])) != 0) {
+            ASC_refusePresentationContext(assoc->params, pid, ASC_P_USERREJECTION);
+        }
+    }
+}
+
+
 OFCondition DcmQueryRetrieveSCP::refuseAssociation(T_ASC_Association ** assoc, CTN_RefuseReason reason)
 {
     OFCondition cond = EC_Normal;
@@ -931,6 +960,17 @@ OFCondition DcmQueryRetrieveSCP::negotiateAssociation(T_ASC_Association * assoc)
     if (!config_->writableStorageArea(calledAETitle))
     {
       refuseAnyStorageContexts(assoc);
+    }
+
+    /*
+     * Refuse any "Query/Retrieve" presentation contexts (C-FIND/C-MOVE/C-GET)
+     * to non-readable storage areas, i.e. those configured with "Access W"
+     * (write-only).  This mirrors the storage refusal above and makes "W"
+     * behave as documented: ingestion allowed, query/retrieve refused.
+     */
+    if (!config_->readableStorageArea(calledAETitle))
+    {
+      refuseAnyQueryRetrieveContexts(assoc);
     }
 
     /*
