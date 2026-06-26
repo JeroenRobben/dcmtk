@@ -51,6 +51,7 @@
 #include "citrus_mmap.h"
 #include "citrus_module.h"
 #include "citrus_hash.h"
+#include "citrus_csmapper.h"
 #include "oficonv_strlcpy.h"
 
 #define _CITRUS_MAPPER_DIR  "mapper.dir"
@@ -411,6 +412,13 @@ _citrus_csmapper_close(struct _citrus_csmapper *cm)
 
     if (cm) {
         WLOCK(&cm_lock);
+        if (!_citrus_mapper_area_exists()) {
+            /* Someone has already deleted the hash table by calling OFiconv_cleanup().
+               Don't try to remove the hash entry since this might cause
+               a use-after-free segfault. */
+            goto quit;
+        }
+
         if (cm->cm_refcount == REFCOUNT_PERSISTENT)
             goto quit;
         if (cm->cm_refcount > 0) {

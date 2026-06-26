@@ -447,3 +447,8 @@ _citrus_csmapper_free()
         _citrus_mapper_delete_area(&maparea);
     }
 }
+
+int _citrus_mapper_area_exists()
+{
+    return (maparea != NULL);
+}
