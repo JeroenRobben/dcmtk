@@ -30,6 +30,7 @@
 #include "dcmtk/dcmdata/dcuid.h"
 #include "dcmtk/dcmqrdb/dcmqrdbi.h"
 #include "dcmtk/dcmqrdb/dcmqrdbs.h"
+#include "dcmtk/dcmnet/dcmlayer.h"
 
 /* Create a unique, empty storage directory for the index database handle.
  * Returns an empty string on failure.
@@ -121,3 +122,16 @@ OFTEST(dcmqrdb_lowercaseQueryRetrieveLevel)
      */
     runFind("study");
 }
+
+#ifndef WITH_OPENSSL
+
+// This dummy function creates a dependency on libdcmnet that is required when compiling
+// on NetBSD with libwrap support enabled and OpenSSL support disabled. Otherwise there
+// would be a linker error complaining about unresolved symbols allow_severity and deny_severity.
+
+DcmTransportLayer *tscuscptls_dummyFunction()
+{
+  return new DcmTransportLayer();
+}
+
+#endif
