@@ -735,15 +735,18 @@ OFBool IODPaletteColorLUTModule::checkDataConsistency(const OFBool& isError)
                         const Uint8* data = NULL;
                         result = getRedPaletteColorLookupTableData(data, redActualNumEntries);
                         delete[] data;
+                        data = NULL;    // accessor leaves 'data' unchanged on failure; reset to avoid a double delete[]
                         if (result.good())
                         {
                             result = getGreenPaletteColorLookupTableData(data, greenActualNumEntries);
                             delete[] data;
+                            data = NULL;
                         }
                         if (result.good())
                         {
                             result = getBluePaletteColorLookupTableData(data, blueActualNumEntries);
                             delete[] data;
+                            data = NULL;
                         }
                     }
                     else if (bits == 16)
@@ -752,15 +755,18 @@ OFBool IODPaletteColorLUTModule::checkDataConsistency(const OFBool& isError)
                         const Uint16* data = NULL;
                         result = getRedPaletteColorLookupTableData(data, redActualNumEntries);
                         delete[] data;
+                        data = NULL;    // accessor leaves 'data' unchanged on failure; reset to avoid a double delete[]
                         if (result.good())
                         {
                             result = getGreenPaletteColorLookupTableData(data, greenActualNumEntries);
                             delete[] data;
+                            data = NULL;
                         }
                         if (result.good())
                         {
                             result = getBluePaletteColorLookupTableData(data, blueActualNumEntries);
                             delete[] data;
+                            data = NULL;
                         }
                     }
                     if (result.good())
