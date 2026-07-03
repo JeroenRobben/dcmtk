@@ -1,6 +1,6 @@
 /*
  *
- *  Copyright (C) 1996-2021, OFFIS e.V.
+ *  Copyright (C) 1996-2026, OFFIS e.V.
  *  All rights reserved.  See COPYRIGHT file for details.
  *
  *  This software and supporting documentation were developed by
@@ -523,9 +523,13 @@ unsigned long DiOverlayPlane::create6xxx3000Data(Uint8 *&buffer,
                         }
                     }
                 }
-                if (bit != 0)
-                    *(q++) = value;
             }
+            // flush the last partial byte once, after all frames have been written:
+            // the overlay data is a single continuous bitstream (see reset()), so
+            // flushing per frame would emit one extra byte per frame whose plane size
+            // is not a multiple of 8 and overrun the 'count8'-byte buffer
+            if (bit != 0)
+                *(q++) = value;
             return count8;      // number of bytes
         }
     }
