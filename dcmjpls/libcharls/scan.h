@@ -840,12 +840,19 @@ size_t JlsCodec<TRAITS,STRATEGY>::DecodeScan(void* rawData, const JlsRect& rect,
 	BYTE rgbyte[20];
 
 	size_t readBytes = 0;
+	// make sure the scan header stays within the compressed input buffer
+	if ((offset > *size) || (*size - offset < 4))
+		throw JlsException(InvalidCompressedData);
 	::memcpy(rgbyte, *ptr + offset + readBytes, 4);
 	readBytes += 4;
 
 	size_t cbyteScanheader = rgbyte[3] - 2;
 
 	if (cbyteScanheader > sizeof(rgbyte))
+		throw JlsException(InvalidCompressedData);
+
+	// and that the scan header itself does not extend past the remaining input
+	if (*size - offset - readBytes < cbyteScanheader)
 		throw JlsException(InvalidCompressedData);
 
 	::memcpy(rgbyte, *ptr + offset + readBytes, cbyteScanheader);
