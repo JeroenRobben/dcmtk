@@ -736,8 +736,10 @@ OFCondition DcmRLECodecDecoder::decodeFrame(
             *pixelPointer = *outputBuffer++;
             pixelPointer += offsetBetweenSamples;
         }
-        // and fill the remainder of the image with copies of the last decoded pixel
-        const Uint8 lastPixelValue = *(outputBuffer - 1);
+        // and fill the remainder of the image with copies of the last decoded pixel;
+        // if the stripe decoded to no data at all, there is no last pixel to copy and
+        // reading *(outputBuffer - 1) would access memory before the buffer, so use zero
+        const Uint8 lastPixelValue = (decoderSize > 0) ? *(outputBuffer - 1) : 0;
         for (pixel = OFstatic_cast(Uint32, decoderSize); pixel < bytesPerStripe; ++pixel)
         {
             *pixelPointer = lastPixelValue;
