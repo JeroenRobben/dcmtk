@@ -163,7 +163,11 @@ OFBool DVPSIPCMessage::extractStringFromPayload(OFString& str)
   // check if we have sufficient data available
   if (payloadReadOffset + length > payloadUsed) return OFFalse;
 
-  str = (const char *)(payload+payloadReadOffset); // guaranteed to be zero terminated string
+  // do not assume the payload is zero terminated: scan at most 'length' bytes
+  const char *strStart = (const char *)(payload+payloadReadOffset);
+  Uint32 strLen = 0;
+  while (strLen < length && strStart[strLen] != '\0') ++strLen;
+  str.assign(strStart, strLen);
   payloadReadOffset += length;
   return OFTrue;
 }
