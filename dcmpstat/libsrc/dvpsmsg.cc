@@ -40,6 +40,7 @@
 
 #define PAYLOAD_ALLOCATION_UNIT 1024
 #define PAYLOAD_OFFSET 8
+#define PAYLOAD_MAX_SIZE (64 * 1024)
 
 // constants for message type
 const Uint32 DVPSIPCMessage::OK                                         = 0;
@@ -215,12 +216,19 @@ OFBool DVPSIPCMessage::receive(DcmTransportConnection &connection)
   messageType = *(Uint32 *)payload;
   payloadUsed = *(Uint32 *)(payload+sizeof(Uint32));
 
+  // reject implausibly large payloads read from the network
+  if (payloadUsed > PAYLOAD_MAX_SIZE)
+  {
+    payloadUsed = PAYLOAD_OFFSET;
+    return OFFalse;
+  }
+
   // check if we need to allocate more memory
   Uint32 requiredSize = payloadUsed + PAYLOAD_OFFSET;
   if (requiredSize > payloadAllocated)
   {
-    delete[] payload;
     while (payloadAllocated < requiredSize) payloadAllocated += PAYLOAD_ALLOCATION_UNIT;
+    delete[] payload;
     payload = new unsigned char[payloadAllocated];
   }
 
